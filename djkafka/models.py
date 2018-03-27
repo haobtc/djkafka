@@ -1,4 +1,5 @@
 import json
+import msgpack
 from django.db import models
 
 class KafkaConsumerOffsetManager(models.Manager):
@@ -25,9 +26,11 @@ class KafkaConsumerOffset(models.Model):
         return u'{}#{}'.format(self.topic, self.partition)
 
 class KafkaBufferManager(models.Manager):
-    def add_to_buffer(self, db, topic, data, use_json=True, partition=0):
-        if use_json:
+    def add_to_buffer(self, db, topic, data, serialize='json', partition=0):
+        if serialize == 'json':
             data = json.dumps(data)
+        elif serialize == 'msgpack':
+            data = msgpack.dumps(data)
         return self.using(db).create(
             topic=topic,
             partition=partition,
