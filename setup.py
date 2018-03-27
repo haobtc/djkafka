@@ -8,7 +8,7 @@ setup(name='djkafka',
       author_email='superisaac.ke@gmail.com',
       packages=find_packages(),
       install_requires=[
-          'django >= 0.11.0',
+          'django >= 0.10.0',
           'msgpack >= 0.5.6',
           'kafka-python >= 1.4.2',
       ]
