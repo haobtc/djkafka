@@ -1,0 +1,4 @@
+*.pyc
+*~
+.localenv
+*.sqlite3
