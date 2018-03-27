@@ -26,11 +26,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         p = Producer(options['database'])
 
-        i = 0
+        last_time = time.time()
         while True:
-            i += 1
             cnt = p.push_buffer()
             if cnt <= 0:
-                if options['clear'] and (i % 1000 == 0):
+                if options['clear'] and time.time() > last_time + 600:
+                    # clear buffer every 10 mins
                     p.clear_buffer()
+                    last_time = time.time()
                 time.sleep(options['sleep'])
