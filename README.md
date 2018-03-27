@@ -19,9 +19,15 @@ INSTALLED_APPS = [
 
 # make djkafka dbrouter migratable to all databases
 DATABASE_ROUTERS = [
+    'djkafka.dbrouter.KafkaDBRouter',
     ....
-    'djkafka.dbrouter.KafkaDBRouter'
 ]
+
+DJKAFKA = {
+    # 'BOOTSTRAP_SERVERS': 'localhost:9092',
+    # 'SKIP_MIGRATION_DBS': [],
+    # 'SSL_CONFIG': {...}
+}
 
 ```
 
