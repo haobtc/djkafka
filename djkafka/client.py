@@ -93,6 +93,10 @@ class Producer:
         data = msgpack.dumps(data)
         return self.send(topic, data)
 
+    def add_to_buffer(self, db, topic, data, **kwargs):
+        return KafkaBuffer.objects.add_to_buffer(
+            db, topic, data, **kwargs)
+
     def push_buffer(self, times=10000, wait_on_idle=None):
         '''
         push buffered data to kafka server

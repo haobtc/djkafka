@@ -5,7 +5,6 @@ from django.test import TestCase
 from django.db import transaction
 from .client import Consumer, Producer
 from .models import KafkaConsumerOffset, KafkaBuffer
-from .helpers import add_to_buffer
 
 class KafkaTestCase(TestCase):
     def setUp(self):
@@ -68,13 +67,14 @@ class KafkaTestCase(TestCase):
         self.assertEquals(msgs[1].offset, offset.offset)
 
     def testBuffer(self):
-        add_to_buffer('default', 'msglist1', 'ccc')
-        add_to_buffer('default', 'msglist1', 'ddd')
+        p = Producer('default')
+        p.add_to_buffer('default', 'msglist1', 'ccc')
+        p.add_to_buffer('default', 'msglist1', 'ddd')
 
         old_count = KafkaBuffer.objects.filter(is_sent=False).count()
 
         c = Consumer('default', 'msglist1')
-        p = Producer('default')
+
         cnt = p.push_buffer()
         self.assertEquals(cnt, 2)
         self.assertEquals(KafkaBuffer.objects.filter(is_sent=False).count(), old_count - 2)
