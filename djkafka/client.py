@@ -111,7 +111,9 @@ class Producer:
                         is_sent=False).first()
                 if buf:
                     self.send(buf.topic, smart_bytes(buf.data))
-                    KafkaBuffer.objects.filter(id=buf.id).update(is_sent=True)
+                    KafkaBuffer.objects.using(
+                        self.db).filter(id=buf.id).update(
+                            is_sent=True)
                     cnt_pushed += 1
                 elif wait_on_idle is None:
                     break
@@ -119,9 +121,9 @@ class Producer:
                 time.sleep(wait_on_idle)
         return cnt_pushed
 
-    def clear_buffer(self, seconds_ago=86400, clear_max_size=10000):
+    def clear_buffer(self, seconds_ago=86400, max_size=10000):
         clear_start = timezone.now() - timedelta(seconds=seconds_ago)
-        return KafkaBuffer.objects.filter(
+        return KafkaBuffer.objects.using(self.db).filter(
             is_sent=True,
             created_at__lt=clear_start
-        ).order_by('id')[:clear_max_size].delete()
+        ).order_by('id')[:max_size].delete()
