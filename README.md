@@ -24,3 +24,7 @@ DATABASE_ROUTERS = [
 ]
 
 ```
+
+## examples
+
+please refer to djkafka/tests.py

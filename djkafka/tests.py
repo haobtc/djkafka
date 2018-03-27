@@ -72,9 +72,7 @@ class KafkaTestCase(TestCase):
         p.add_to_buffer('default', 'msglist1', 'ddd')
 
         old_count = KafkaBuffer.objects.filter(is_sent=False).count()
-
         c = Consumer('default', 'msglist1')
-
         cnt = p.push_buffer()
         self.assertEquals(cnt, 2)
         self.assertEquals(KafkaBuffer.objects.filter(is_sent=False).count(), old_count - 2)
