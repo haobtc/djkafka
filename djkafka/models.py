@@ -19,7 +19,7 @@ class KafkaConsumerOffset(models.Model):
     objects = KafkaConsumerOffsetManager()
 
     class Meta:
-        db_table = 'kafka_offset'        
+        db_table = 'kafka_offset'
         unique_together = [('topic', 'partition')]
 
     def __unicode__(self):
@@ -35,7 +35,7 @@ class KafkaBufferManager(models.Manager):
             topic=topic,
             partition=partition,
             data=data)
-    
+
 class KafkaBuffer(models.Model):
     '''
     this model is not necessary since we can directly

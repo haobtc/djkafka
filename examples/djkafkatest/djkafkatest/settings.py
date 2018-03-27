@@ -40,6 +40,10 @@ INSTALLED_APPS = [
     'djkafka',
 ]
 
+DATABASE_ROUTERS = [
+    'djkafka.dbrouter.KafkaDBRouter'
+]
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

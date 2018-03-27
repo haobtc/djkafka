@@ -15,17 +15,17 @@ class KafkaTestCase(TestCase):
         logging.disable(logging.NOTSET)
         KafkaConsumerOffset.objects.all().delete()
         KafkaBuffer.objects.all().delete()
-        
+
     def testConsumer(self):
 
         '''
         typical usage:
         for msg in c.consumer:
             with transaction.atomic(using='xxxx'):
-                .... 
+                ....
                 c.save_offset(msg)
         '''
-        c = Consumer('default', 'msglist')        
+        c = Consumer('default', 'msglist')
         p = Producer('default')
         p.send_json('msglist', 'aaa')
         p.send_json('msglist', 'bbb')
@@ -37,7 +37,7 @@ class KafkaTestCase(TestCase):
                     c.save_offset(msg)
 
         self.assertEquals(msgs[0].value, 'aaa')
-        self.assertEquals(msgs[1].value, 'bbb')        
+        self.assertEquals(msgs[1].value, 'bbb')
         offset = KafkaConsumerOffset.objects.filter(
             topic='msglist')[0]
         self.assertEquals(msgs[1].offset, offset.offset)
@@ -47,10 +47,10 @@ class KafkaTestCase(TestCase):
         typical usage:
         for msg in c.consumer:
             with transaction.atomic(using='xxxx'):
-                .... 
+                ....
                 c.save_offset(msg)
         '''
-        c = Consumer('default', 'msglist2', serialize='msgpack')        
+        c = Consumer('default', 'msglist2', serialize='msgpack')
         p = Producer('default')
         p.send_msgpack('msglist2', 'aaa')
         p.send_msgpack('msglist2', ['bbb', 'ccc'])
@@ -66,7 +66,7 @@ class KafkaTestCase(TestCase):
         offset = KafkaConsumerOffset.objects.filter(
             topic='msglist2')[0]
         self.assertEquals(msgs[1].offset, offset.offset)
-        
+
     def testBuffer(self):
         add_to_buffer('default', 'msglist1', 'ccc')
         add_to_buffer('default', 'msglist1', 'ddd')
@@ -84,9 +84,7 @@ class KafkaTestCase(TestCase):
                 with transaction.atomic(using='default'):
                     msgs.append(msg)
                     c.save_offset(msg)
-    
-        self.assertEquals(msgs[0].value, 'ccc')
-        self.assertEquals(msgs[1].value, 'ddd')        
 
-        
-        
+        self.assertEquals(msgs[0].value, 'ccc')
+        self.assertEquals(msgs[1].value, 'ddd')
+
