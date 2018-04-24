@@ -7,7 +7,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.encoding import smart_bytes
 from kafka import KafkaConsumer, KafkaProducer, TopicPartition
-from .defaults import SERVERS
+from .defaults import config
 from .models import KafkaConsumerOffset, KafkaBuffer
 
 testing = sys.argv[1:2] == ['test']
@@ -19,11 +19,13 @@ def get_topic(topic):
         return topic
 
 class Consumer:
-    def __init__(self, db, topic, partition=None, serialize='json', offset_reset='latest', **kwargs):
+    def __init__(self, db, topic, server='default', partition=None, serialize='json', offset_reset='latest', **kwargs):
         self.db = db
         self.topic = topic
 
-        kwargs.setdefault('bootstrap_servers', SERVERS)
+        servers = config['SERVERS'][server]['BOOTSTRAP_SERVERS']
+        kwargs.setdefault('bootstrap_servers', servers)
+
         if serialize == 'json':
             kwargs['value_deserializer'] = lambda v:json.loads(v, encoding='utf-8')
         elif serialize == 'msgpack':
@@ -76,26 +78,35 @@ class Consumer:
             msg.offset)
 
 class Producer:
-    def __init__(self, db, **kwargs):
+    def __init__(self, db, server='default', **kwargs):
         self.db = db
-        kwargs.setdefault('bootstrap_servers', SERVERS)
-        self.producer = KafkaProducer(**kwargs)
+        self.producer_kwargs = kwargs
+        self._producers = {}
 
-    def send(self, topic, data):
+    def get_producer(self, server):
+        if server not in self._producers:
+            kwargs = self.producer_kwargs.copy()
+            servers = config['SERVERS'][server]['BOOTSTRAP_SERVERS']
+            kwargs.setdefault('bootstrap_servers', servers)
+            producer = KafkaProducer(**kwargs)
+            self._producers[server] = producer
+        return self._producers[server]
+
+    def send(self, topic, data, server='default'):
         data = smart_bytes(data)
-        return self.producer.send(get_topic(topic), data)
+        return self.get_producer(server).send(get_topic(topic), data)
 
-    def send_json(self, topic, data):
+    def send_json(self, topic, data, server='default'):
         data = json.dumps(data)
-        return self.send(topic, data)
+        return self.send(topic, data, server=server)
 
-    def send_msgpack(self, topic, data):
+    def send_msgpack(self, topic, data, server='default'):
         data = msgpack.dumps(data)
-        return self.send(topic, data)
+        return self.send(topic, data, server=server)
 
-    def add_to_buffer(self, db, topic, data, **kwargs):
+    def add_to_buffer(self, db, topic, data, server='default', **kwargs):
         return KafkaBuffer.objects.add_to_buffer(
-            db, topic, data, **kwargs)
+            db, topic, data, server=server, **kwargs)
 
     def push_buffer(self, times=10000, wait_on_idle=None):
         '''
@@ -110,7 +121,7 @@ class Producer:
                     self.db).select_for_update().filter(
                         is_sent=False).first()
                 if buf:
-                    self.send(buf.topic, smart_bytes(buf.data))
+                    self.send(buf.topic, smart_bytes(buf.data), server=buf.server)
                     KafkaBuffer.objects.using(
                         self.db).filter(id=buf.id).update(
                             is_sent=True)

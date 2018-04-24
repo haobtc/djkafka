@@ -2,7 +2,7 @@ from distutils.core import setup
 from setuptools import find_packages
 
 setup(name='djkafka',
-      version='0.1.0',
+      version='0.1.1',
       description='simple wrapper of kakfa-python in django',
       author='Zeng Ke',
       author_email='superisaac.ke@gmail.com',
